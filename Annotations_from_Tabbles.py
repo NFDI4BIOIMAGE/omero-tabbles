@@ -1,12 +1,13 @@
 import omero
+from omero.model import TagAnnotationI
 from omero.gateway import BlitzGateway
 from omero.rtypes import rstring, rlong
 import omero.scripts as scripts
-#from collections import OrderedDict
 from omero.cmd import Delete2
 import xml.etree.ElementTree as ET
 import ast
 
+import re
 import pyodbc
 import json
 import pandas as pd
@@ -122,20 +123,31 @@ def remove_tag_annotations(conn, image):
     number_of_deleted_tags: int
         the total amount of deleted tags
     """
+    number_of_deleted_tags = 0
+    imageId = image.getId()
+    # get all TagAnnotations of the Image
     annotations = list(image.listAnnotations())
-    tagann_ids = [ann.id for ann in annotations
+    if not len(annotations) >= 0:
+        return
+    tagAnnotations = [ann for ann in annotations
                   if isinstance(ann, omero.gateway.TagAnnotationWrapper)]
     
-    number_of_deleted_tags = len(tagann_ids)
+    # get the AnnotationLinks and delete them
+    for tagAnnotation in tagAnnotations:
+        links = tagAnnotation.getParentLinks("Image",[imageId])
+        for link in links:
+            conn.deleteObject(link._obj)
+            number_of_deleted_tags+=1
+            print("Unlinked Tag ", tagAnnotation.getValue())
+    
+    # try:
+    #     delete = Delete2(targetObjects={'TagAnnotation': tagann_ids})
+    #     handle = conn.c.sf.submit(delete)
+    #     conn.c.waitOnCmd(handle, loops=10, ms=500, failonerror=True,
+    #                      failontimeout=False, closehandle=False)
 
-    try:
-        delete = Delete2(targetObjects={'TagAnnotation': tagann_ids})
-        handle = conn.c.sf.submit(delete)
-        conn.c.waitOnCmd(handle, loops=10, ms=500, failonerror=True,
-                         failontimeout=False, closehandle=False)
-
-    except Exception as ex:
-        print("Failed to delete links: {}".format(ex.message))
+    # except Exception as ex:
+    #     print("Failed to delete links: {}".format(ex.message))
     return number_of_deleted_tags
 
 def getMaprNamespaces():
@@ -181,18 +193,16 @@ def transformToMaprNamespace(orig_ns):
         List of Images as ``omero.model.ImageI`` objects
     '''
     mapr_ns_list = getMaprNamespaces()
-    only_letters_ns = ""
     # extract only the letter-wise namespace (e.g. "01_Biosample" becomes "biosample")
-    for char in orig_ns.lower():
-        if char.isalpha():
-            only_letters_ns+=char
+    only_letters_ns = re.search(r"[a-zA-Z\s]{3,}",orig_ns).group()
 
     # if the letter-wise namespace is contained in the OMERO.mapr Namespaces return the
     # respective Namespace
     result=""
     for namespace in mapr_ns_list:
-        if only_letters_ns in namespace.lower():
-            result = namespace.lower()
+        # check if the regex.search found anything and compare it to the defined namespaces
+        if only_letters_ns!=None and only_letters_ns.lower() in namespace.lower():
+            result = namespace
             print("transformed Namespace: ",result)
     return result
 
@@ -426,8 +436,10 @@ def annotateObject (conn, script_params, image, data_dict):
                     tag_ann = omero.gateway.TagAnnotationWrapper(conn)
                     tag_ann.setValue(tag_value)
                     tag_ann.save()
+                    tag_ann_id = tag_ann.getId()
                     image.linkAnnotation(tag_ann)
                     print(f"created new Tag '{tag_value}'.")
+                    tag_dict[tag_value] = tag_ann_id
                     counter += 1
                 # or get the existing one and link it
                 else:
