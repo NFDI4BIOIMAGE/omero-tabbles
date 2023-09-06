@@ -74,7 +74,7 @@ Log in with the credentials provided by your System Admin.
 Follow the installation guide on the [GitHub](https://idr.openmicroscopy.org/webclient/?show=screen-51). 
 Only Namespaces and Keys defined in the config under "ns" and "all" respectively, can utilize the functionality of OMERO.mapr, namely the search function of the values and the possibility to add a URL Key-Value pair to create a hyperlink-thumbnail:
 
-![](Capture.png) 
+![](https://github.com/MuensterImagingNetwork/annotations_from_tabbles/blob/dev/Capture.PNG?raw=true) 
 
 The most important part is to configure the Namespaces correctly, even if some Keys are not in the configuration they will still be displayed under their correct Namespace "paragraph" they just cannot benefit from the full OMERO.mapr functionality which might not be needed for every Key anyways.<br>
 Configure the settings according to your used Tabbles Namespace-level tags, i.e. the "ns" entry has to contain the "stripped" Namespace-tag from Tabbles. To better visualize this, here an example:
