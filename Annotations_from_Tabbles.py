@@ -14,14 +14,15 @@ import pandas as pd
 
 DEFAULT_NAMESPACE = omero.constants.metadata.NSCLIENTMAPANNOTATION
 
-def get_existing_map_annotations(image):
+
+def get_existing_map_annotations(image): 
     """Get all Map Annotations linked to the object
 
     Parameters:
     --------------
     image: ``omero.model.ImageI`` object
-        the image from which the MapAnnoations are to be retrieved
-    
+    the image from which the MapAnnoations are to be retrieved
+
     Returns:
     -------------
     existing: dict
@@ -39,6 +40,7 @@ def get_existing_map_annotations(image):
                     existing[namespace][key] = []
                 existing[namespace][key].append(value)
     return existing
+
 
 def get_tag_dict(conn):
     """Gets a dict of all existing Tag Names with their respective OMERO IDs as values
@@ -127,7 +129,7 @@ def remove_tag_annotations(conn, image):
     imageId = image.getId()
     # get all TagAnnotations of the Image
     annotations = list(image.listAnnotations())
-    if not len(annotations) >= 0:
+    if not len(annotations) > 0:
         return
     tagAnnotations = [ann for ann in annotations
                   if isinstance(ann, omero.gateway.TagAnnotationWrapper)]
@@ -249,6 +251,25 @@ def getImages(conn, script_params):
             dataset_images = list(ds.listChildren())
             for img in dataset_images:
                 images.append(img)
+
+    elif script_params["Data_Type"]=="Plate":
+        for id in script_params["IDs"]:
+            plate = conn.getObject("Plate",id)
+            for well in plate.listChildren():
+                index = well.countWellSample()
+                for i in range(0,index):
+                    img = well.getImage(i)
+                    images.append(img)
+
+    elif script_params["Data_Type"]=="Screen":
+        for id in script_params["IDs"]:
+            screen = conn.getObject("Screen",id)
+            for plate in screen.listChildren():
+                for well in plate.listChildren():
+                    index = well.countWellSample()
+                    for i in range(0,index):
+                        img = well.getImage(i)
+                        images.append(img)
 
     return images
 
@@ -505,10 +526,10 @@ def annotateObject (conn, script_params, image, data_dict):
                 added = added + len(new_KVpairs_dict)
             counter_map_ann = added - deleted
 
-
     if script_params["What_to_do_with_existing_Annotations"]=="Append":
         # TAGS
-        # check if the new Tags are already linked, if the Tag exists at all and create it if not
+        # check if the new Tags are already linked,
+        # if the Tag exists at all and create it if not
         if len(new_tags)>0:
             existing_tags = get_linked_tag_annotations(image)
             tag_dict = get_tag_dict(conn)
@@ -646,7 +667,7 @@ def tabbles_annotation(conn, script_params):
 
 def run_script():
 
-    data_types = [rstring('Project'), rstring('Dataset'), rstring('Image')]
+    data_types = [rstring('Project'), rstring('Dataset'), rstring('Image'), rstring('Screen'), rstring('Plate')]
     existing_kv = [rstring('Append'), rstring('Overwrite')]
     tabbles_database = [rstring('tabbles_production'), rstring('tabbles_dev')]
     client = scripts.client(
