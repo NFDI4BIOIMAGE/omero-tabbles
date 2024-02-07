@@ -130,7 +130,7 @@ def remove_tag_annotations(conn, image):
     # get all TagAnnotations of the Image
     annotations = list(image.listAnnotations())
     if not len(annotations) > 0:
-        return
+        return number_of_deleted_tags
     tagAnnotations = [ann for ann in annotations
                   if isinstance(ann, omero.gateway.TagAnnotationWrapper)]
     
