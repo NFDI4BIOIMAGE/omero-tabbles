@@ -106,7 +106,7 @@ To be able to connect to the MSSQL instance and read the necessary data we have 
     to grant `<python-user>` access to read all tables in the database.<br>  
 
 #### Enabling the OMERO server to connect to MSSQL:
-On the OMERO server as `omero` user: 
+On the OMERO server as `<omero-server>` user: 
 ```
 $pip install pyodbc
 ```
