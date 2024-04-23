@@ -71,7 +71,7 @@ Log in with the credentials provided by your System Admin.
 
 ## System Admin
 #### OMERO.mapr: 
-Follow the installation guide on the [GitHub](https://idr.openmicroscopy.org/webclient/?show=screen-51). 
+Follow the installation guide on the [GitHub](https://github.com/ome/omero-mapr). 
 Only Namespaces and Keys defined in the config under "ns" and "all" respectively, can utilize the functionality of OMERO.mapr, namely the search function of the values and the possibility to add a URL Key-Value pair to create a hyperlink-thumbnail:
 
 ![](https://github.com/MuensterImagingNetwork/annotations_from_tabbles/blob/dev/Capture.PNG?raw=true) 
